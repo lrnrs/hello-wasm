@@ -1,4 +1,7 @@
-use crate::base::shape::{Path, Point, Shape};
+use crate::base::shape::path::Path;
+use crate::base::shape::point::Point;
+use crate::base::shape::shape::Shape;
+
 use crate::base::Transformation;
 
 #[derive(Debug)]
@@ -10,27 +13,44 @@ pub struct Rotate {
 impl Rotate {
     pub fn from(degrees: f32) -> Rotate {
         let radians = Rotate::degrees_to_radians(degrees);
-        Rotate { around: None, radians }
+        Rotate {
+            around: None,
+            radians,
+        }
     }
 
     pub fn around(degrees: f32, p: Point) -> Rotate {
         let radians = Rotate::degrees_to_radians(degrees);
-        Rotate { around: Some(p), radians }
+        Rotate {
+            around: Some(p),
+            radians,
+        }
     }
 
     fn a_point(&self, p: &Point, around: &Point) -> Point {
-        let new_x: f32 = around.x + (p.x - around.x) * self.radians.cos() - (p.y - around.y) * self.radians.sin();
-        let new_y: f32 = around.y + (p.x - around.x) * self.radians.sin() + (p.y - around.y) * self.radians.cos();
+        let new_x: f32 = around.x + (p.x - around.x) * self.radians.cos()
+            - (p.y - around.y) * self.radians.sin();
+        let new_y: f32 = around.y
+            + (p.x - around.x) * self.radians.sin()
+            + (p.y - around.y) * self.radians.cos();
         Point::from(new_x, new_y)
     }
 
     fn a_path(&self, p: &Path, around: &Point) -> Path {
-        let new_points: Vec<Point> = p.points.iter().map(|point| self.a_point(point, around)).collect();
+        let new_points: Vec<Point> = p
+            .points
+            .iter()
+            .map(|point| self.a_point(point, around))
+            .collect();
         Path::from(new_points)
     }
 
     fn a_shape(&self, s: &Shape, around: &Point) -> Shape {
-        let new_paths: Vec<Path> = s.paths.iter().map(|path| self.a_path(path, &around)).collect();
+        let new_paths: Vec<Path> = s
+            .paths
+            .iter()
+            .map(|path| self.a_path(path, &around))
+            .collect();
         Shape::from(new_paths)
     }
 
@@ -52,7 +72,12 @@ mod tests {
     use super::*;
     const PRECISION: f32 = 0.00001;
     fn test(expected: &Point, result: &Point) {
-        assert!(expected.distance_to(result) < PRECISION, "Expected {:?}, got {:?}", expected, result);
+        assert!(
+            expected.distance_to(result) < PRECISION,
+            "Expected {:?}, got {:?}",
+            expected,
+            result
+        );
     }
 
     #[test]
@@ -92,7 +117,7 @@ mod tests {
         let p = Path::line(Point::from(1.0, 0.0), Point::from(2.0, 0.0));
         let rotated = rotate.a_path(&p, &Point::from(0.0, 0.0));
         let inverted = invert.a_path(&rotated, &Point::from(0.0, 0.0));
-        
+
         test(&p.points[0], &inverted.points[0]);
         test(&p.points[1], &inverted.points[1]);
     }
@@ -135,7 +160,7 @@ mod tests {
             Path::line(Point::from(-1.0, -1.0), Point::from(1.0, -1.0)),
             Path::line(Point::from(1.0, -1.0), Point::from(1.0, 1.0)),
             Path::line(Point::from(1.0, 1.0), Point::from(-1.0, 1.0)),
-            Path::line(Point::from(-1.0, 1.0), Point::from(-1.0, -1.0))
+            Path::line(Point::from(-1.0, 1.0), Point::from(-1.0, -1.0)),
         ];
 
         let shape = Shape::from(paths);

@@ -1,4 +1,6 @@
-use crate::base::shape::{Path, Point, Shape};
+use crate::base::shape::path::Path;
+use crate::base::shape::point::Point;
+use crate::base::shape::shape::Shape;
 use crate::base::Transformation;
 
 pub struct Scale {
@@ -11,7 +13,11 @@ impl Scale {
     }
 
     fn scaled_path(&self, p: &Path) -> Path {
-        let new_points: Vec<Point> = p.points.iter().map(|point| self.scaled_point(point)).collect();
+        let new_points: Vec<Point> = p
+            .points
+            .iter()
+            .map(|point| self.scaled_point(point))
+            .collect();
         Path::from(new_points)
     }
 

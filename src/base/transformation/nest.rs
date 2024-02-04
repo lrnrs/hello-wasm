@@ -1,4 +1,4 @@
-use crate::base::shape::{Path, Point, Shape};
+use crate::base::shape::shape::Shape;
 use crate::base::Transformation;
 
 pub struct Nest {

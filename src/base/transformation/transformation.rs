@@ -1,6 +1,7 @@
-use crate::base::shape::{Point, Shape};
-use crate::base::transformation::translate::Translate;
+use crate::base::shape::point::Point;
+use crate::base::shape::shape::Shape;
 use crate::base::transformation::rotate::Rotate;
+use crate::base::transformation::translate::Translate;
 
 pub trait Transformation {
     fn apply(&self, s: Shape) -> Shape;
@@ -15,4 +16,3 @@ impl dyn Transformation {
         Translate::from(p.normalized(), p.length())
     }
 }
-

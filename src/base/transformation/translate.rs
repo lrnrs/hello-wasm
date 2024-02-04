@@ -1,4 +1,6 @@
-use crate::base::shape::{Path, Point, Shape};
+use crate::base::shape::path::Path;
+use crate::base::shape::point::Point;
+use crate::base::shape::shape::Shape;
 use crate::base::Transformation;
 
 pub struct Translate {
@@ -8,7 +10,10 @@ pub struct Translate {
 
 impl Translate {
     pub fn from(direction: Point, distance: f32) -> Translate {
-        Translate { direction: direction.normalized(), distance }
+        Translate {
+            direction: direction.normalized(),
+            distance,
+        }
     }
 
     fn a_point(&self, p: &Point) -> Point {
@@ -35,7 +40,12 @@ mod tests {
     use super::*;
     const PRECISION: f32 = 0.00001;
     fn test(expected: &Point, result: &Point) {
-        assert!(expected.distance_to(result) < PRECISION, "Expected {:?}, got {:?}", expected, result);
+        assert!(
+            expected.distance_to(result) < PRECISION,
+            "Expected {:?}, got {:?}",
+            expected,
+            result
+        );
     }
 
     #[test]
@@ -70,8 +80,14 @@ mod tests {
 
     #[test]
     fn it_is_reversible_for_paths() {
-        let translate = Translate::from(Point::from(std::f32::consts::PI, std::f32::consts::PI), std::f32::consts::PI);
-        let reverse = Translate::from(Point::from(std::f32::consts::PI, std::f32::consts::PI), -std::f32::consts::PI);
+        let translate = Translate::from(
+            Point::from(std::f32::consts::PI, std::f32::consts::PI),
+            std::f32::consts::PI,
+        );
+        let reverse = Translate::from(
+            Point::from(std::f32::consts::PI, std::f32::consts::PI),
+            -std::f32::consts::PI,
+        );
         let p = Path::line(Point::from(1.0, 1.0), Point::from(2.0, 2.0));
         let translated = translate.a_path(&p);
         let reversed = reverse.a_path(&translated);
@@ -85,7 +101,10 @@ mod tests {
         let translate = Translate::from(Point::from(1.0, 1.0), 1.0);
         let reverse = Translate::from(Point::from(1.0, 1.0), -1.0);
 
-        let shape = Shape::from(vec![Path::line(Point::from(1.0, 1.0), Point::from(2.0, 2.0))]);
+        let shape = Shape::from(vec![Path::line(
+            Point::from(1.0, 1.0),
+            Point::from(2.0, 2.0),
+        )]);
         let translated = translate.apply(shape.clone());
         let reversed = reverse.apply(translated);
 
@@ -104,4 +123,3 @@ mod tests {
         test(&translated.paths[0].points[1], &s.paths[0].points[1]);
     }
 }
-

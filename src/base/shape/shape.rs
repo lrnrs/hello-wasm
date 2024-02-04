@@ -1,47 +1,10 @@
+use crate::base::shape::path::Path;
+use crate::base::shape::point::Point;
 use crate::base::transformation::transformation::Transformation;
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Point {
-    pub x: f32,
-    pub y: f32,
-}
-
-impl Point {
-    pub fn distance_to(&self, other: &Point) -> f32 {
-        ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
-    }
-
-    pub fn from(x: f32, y: f32) -> Point {
-        Point { x, y }
-    }
-    pub fn normalized(&self) -> Point {
-        let length = (self.x * self.x + self.y * self.y).sqrt();
-        Point::from(self.x / length, self.y / length)
-    }
-    pub fn length(&self) -> f32 {
-        (self.x * self.x + self.y * self.y).sqrt()
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Path {
-    pub points: Vec<Point>,
-}
-
-impl Path {
-    pub fn from(points: Vec<Point>) -> Path {
-        Path { points }
-    }
-
-    pub fn line(p1: Point, p2: Point) -> Path {
-        Path {
-            points: vec![p1, p2],
-        }
-    }
-}
 #[derive(Clone, Debug)]
 pub struct Shape {
-    pub paths: Vec<Path>
+    pub paths: Vec<Path>,
 }
 
 impl Shape {
@@ -77,10 +40,22 @@ impl Shape {
     pub fn square(side: f32, transformations: Option<Vec<impl Transformation>>) -> Shape {
         let half_side: f32 = side / 2.0;
         let paths: Vec<Path> = vec![
-            Path::line(Point::from(-half_side, -half_side), Point::from(half_side, -half_side)),
-            Path::line(Point::from(half_side, -half_side), Point::from(half_side, half_side)),
-            Path::line(Point::from(half_side, half_side), Point::from(-half_side, half_side)),
-            Path::line(Point::from(-half_side, half_side), Point::from(-half_side, -half_side)),
+            Path::line(
+                Point::from(-half_side, -half_side),
+                Point::from(half_side, -half_side),
+            ),
+            Path::line(
+                Point::from(half_side, -half_side),
+                Point::from(half_side, half_side),
+            ),
+            Path::line(
+                Point::from(half_side, half_side),
+                Point::from(-half_side, half_side),
+            ),
+            Path::line(
+                Point::from(-half_side, half_side),
+                Point::from(-half_side, -half_side),
+            ),
         ];
         let shape = Shape::from(paths);
 
@@ -96,7 +71,7 @@ impl Shape {
                     shape
                 }
             }
-            None => shape
+            None => shape,
         }
     }
 
@@ -115,7 +90,7 @@ impl Shape {
                     shape
                 }
             }
-            None => shape
+            None => shape,
         }
     }
 
@@ -123,12 +98,18 @@ impl Shape {
         let center = self.center();
         let dx = p.x - center.x;
         let dy = p.y - center.y;
-        let new_paths: Vec<Path> = self.paths.iter().map(|path| {
-            let new_points: Vec<Point> = path.points.iter().map(|point| {
-                Point::from(point.x + dx, point.y + dy)
-            }).collect();
-            Path::from(new_points)
-        }).collect();
+        let new_paths: Vec<Path> = self
+            .paths
+            .iter()
+            .map(|path| {
+                let new_points: Vec<Point> = path
+                    .points
+                    .iter()
+                    .map(|point| Point::from(point.x + dx, point.y + dy))
+                    .collect();
+                Path::from(new_points)
+            })
+            .collect();
         Shape::from(new_paths)
     }
 
@@ -137,10 +118,19 @@ impl Shape {
         let dim_y = 200;
         let center = Point::from((dim_x as f32) / 2.0, (dim_y as f32) / 2.0);
         let centered = self.centered_on(center);
-        let mut svg: String = "<svg width=\"".to_string() + &dim_x.to_string() + "\" height=\"" + &dim_y.to_string() + "\" xmlns=\"http://www.w3.org/2000/svg\">";
+        let mut svg: String = "<svg width=\"".to_string()
+            + &dim_x.to_string()
+            + "\" height=\""
+            + &dim_y.to_string()
+            + "\" xmlns=\"http://www.w3.org/2000/svg\">";
         for path in centered.paths {
             svg = svg + "<path d=\"";
-            svg = svg + "M" + &path.points[0].x.to_string() + " " + &path.points[0].y.to_string() + " ";
+            svg = svg
+                + "M"
+                + &path.points[0].x.to_string()
+                + " "
+                + &path.points[0].y.to_string()
+                + " ";
             for point in path.points.iter().skip(1) {
                 svg = svg + "L" + &point.x.to_string() + " " + &point.y.to_string() + " ";
             }
