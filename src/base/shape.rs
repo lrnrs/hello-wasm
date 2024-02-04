@@ -1,12 +1,16 @@
 use crate::base::transformation::transformation::Transformation;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
 }
 
 impl Point {
+    pub fn distance_to(&self, other: &Point) -> f32 {
+        ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
+    }
+
     pub fn from(x: f32, y: f32) -> Point {
         Point { x, y }
     }
@@ -19,7 +23,7 @@ impl Point {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Path {
     pub points: Vec<Point>,
 }
@@ -29,13 +33,13 @@ impl Path {
         Path { points }
     }
 
-    fn line(p1: Point, p2: Point) -> Path {
+    pub fn line(p1: Point, p2: Point) -> Path {
         Path {
             points: vec![p1, p2],
         }
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Shape {
     pub paths: Vec<Path>
 }
@@ -70,30 +74,49 @@ impl Shape {
         Point::from(x / n, y / n)
     }
 
-    pub fn square(side: f32, transformation: impl Transformation) -> Shape {
-        let half_side = side / 2.0;
-        let lines: Vec<Path> = vec![
+    pub fn square(side: f32, transformations: Option<Vec<impl Transformation>>) -> Shape {
+        let half_side: f32 = side / 2.0;
+        let paths: Vec<Path> = vec![
             Path::line(Point::from(-half_side, -half_side), Point::from(half_side, -half_side)),
             Path::line(Point::from(half_side, -half_side), Point::from(half_side, half_side)),
             Path::line(Point::from(half_side, half_side), Point::from(-half_side, half_side)),
             Path::line(Point::from(-half_side, half_side), Point::from(-half_side, -half_side)),
         ];
-        let shape = Shape::from(lines);
-        transformation.apply(shape)
+        let shape = Shape::from(paths);
+
+        match transformations {
+            Some(ts) => {
+                if ts.len() > 0 {
+                    let mut new_shape: Shape = shape.clone();
+                    for t in ts {
+                        new_shape = t.apply(new_shape);
+                    }
+                    new_shape
+                } else {
+                    shape
+                }
+            }
+            None => shape
+        }
     }
 
-    pub fn horizontal_line(length: f32) -> Shape {
-        let line: Vec<Path> = vec![
-            Path::line(Point::from(0.0, 0.0), Point::from(length, 0.0)),
-        ];
-        Shape::from(line)
-    }
-
-    pub fn vertical_line(length: f32) -> Shape {
-        let line: Vec<Path> = vec![
-            Path::line(Point::from(0.0, 0.0), Point::from(0.0, length)),
-        ];
-        Shape::from(line)
+    pub fn line(length: f32, transformations: Option<Vec<impl Transformation>>) -> Shape {
+        let line = Path::line(Point::from(0.0, 0.0), Point::from(length, 0.0));
+        let shape = Shape::from(vec![line]);
+        match transformations {
+            Some(ts) => {
+                if ts.len() > 0 {
+                    let mut new_shape = shape.clone();
+                    for t in ts {
+                        new_shape = t.apply(new_shape);
+                    }
+                    new_shape
+                } else {
+                    shape
+                }
+            }
+            None => shape
+        }
     }
 
     fn centered_on(&self, p: Point) -> Shape {
